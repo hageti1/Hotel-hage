@@ -487,27 +487,34 @@ function branchMgr(){const e=$('sheet');e.style.display='block';const bs=PL.filt
   else if(d.th!==undefined){const p=PL[d.th];if(money<120000)return toast('資金不足');money-=120000;LG.exp+=120000;p.th=((p.th||0)+1)%4;slots.filter(s=>(s.ox||0)==p.x&&s.type&&!s.fac).forEach(s=>furnish(s));toast('🛋 内装を「'+THN[p.th]+'」に改装')}
   branchMgr();hud()}}
 const SMC=[{k:'fresh',n:'🥬 生鮮',c:200,p:300,w:3,sp:.25,col:0x4caf50},{k:'food',n:'🍚 食品',c:170,p:250,w:3,sp:0,col:0xc9a227},{k:'daily',n:'🧴 日用品',c:270,p:400,w:1.5,sp:0,col:0x5aa9e6},{k:'drink',n:'🥤 飲料',c:100,p:150,w:2.5,sp:0,col:0xe74c3c},{k:'deli',n:'🍱 惣菜',c:300,p:450,w:2,sp:.5,col:0xff9800}];
-let SM={own:0,lvl:1,reg:1,clerk:0,ad:0,rep:1,sh:{},bk:{},pm:{},d:{cu:0,rev:0,lost:0,waste:0},tot:0};
-const SMX=2400,SMcs=[],SMq=[[],[],[],[]],SMsh={},SMfg=[];let SMacc=0,SMld=0,SMrt=0,SMg=null,SMu=0;
-const smCap=()=>20+20*SM.lvl,smOpen=()=>Math.min(SM.reg,1+SM.clerk),smPrice=k=>Math.round(SMC.find(c=>c.k==k).p*SM.pm[k]/10)*10;
-function smInit(){SMC.forEach(c=>{SM.sh[c.k]=SM.sh[c.k]||0;SM.bk[c.k]=SM.bk[c.k]||0;SM.pm[c.k]=SM.pm[c.k]||1})}
-function smRate(){let p=0,n=0;SMC.forEach(c=>{p+=SM.pm[c.k]*c.w;n+=c.w});return(24+16*SM.lvl)*(1+brand/150)*(SM.ad>0?1.4:1)*(1.5-p/n*.5)*SM.rep*(wk?1.25:1)*(wx==2?.75:1)*(1+Math.min(.3,MEM/6000))}
+let SMK={own:0,lvl:1,reg:1,clerk:0,ad:0,rep:1,sh:{},bk:{},pm:{},d:{cu:0,rev:0,lost:0,waste:0},tot:0};
+let SMX=2400,SMcs=[],SMq=[[],[],[],[]],SMsh={},SMfg=[],SMS=[],SMcur=null;let SMacc=0,SMld=0,SMrt=0,SMg=null,SMu=0;
+const SML=[{x:2400,n:'MARKET 本店',t:'バランス型',rm:1,rent:1,gc:0x7d848c},{x:3200,n:'MARKET 郊外店',t:'客数少なめ・家賃安',rm:.9,rent:.7,gc:0x8aa860},{x:4000,n:'MARKET 駅前店',t:'客数多い・家賃高',rm:1.3,rent:1.5,gc:0x6c7078},{x:4800,n:'MARKET 海沿い店',t:'週末に強い観光客向け',rm:1,rent:1.1,gc:0xe8d9a8,we:1},{x:5600,n:'MARKET 山麓店',t:'静かな住宅地・家賃安',rm:.8,rent:.6,gc:0x7fae55},{x:6400,n:'MARKET 空港店',t:'客数最多・家賃最高',rm:1.5,rent:1.8,gc:0x8a8f96}];
+const smMax=()=>Math.min(SML.length,2+Math.floor(lvl/3)),smCost=()=>Math.round(1500000*(1+.35*SMS.length)),smDisc=()=>1-Math.min(.2,.04*(SMS.length-1));
+const smNew=L=>({own:1,x:L.x,n:L.n,gc:L.gc,rm:L.rm,rent:L.rent,we:L.we,lvl:1,reg:1,clerk:0,mgr:0,ad:0,rep:1,sh:{},bk:{},pm:{},d:{cu:0,rev:0,lost:0,waste:0},tot:0,cs:[],q:[[],[],[],[]],shm:{},fg:[],g:null,acc:0,ld:day,rt:0,u:0});
+const smSave=t=>({x:t.x,own:1,lvl:t.lvl,reg:t.reg,clerk:t.clerk,mgr:t.mgr,ad:t.ad,rep:t.rep,sh:t.sh,bk:t.bk,pm:t.pm,d:t.d,tot:t.tot});
+function smUse(t){if(SMcur){SMcur.acc=SMacc;SMcur.ld=SMld;SMcur.rt=SMrt;SMcur.u=SMu;SMcur.g=SMg}SMcur=t;SMK=t;SMX=t.x;SMcs=t.cs;SMq=t.q;SMsh=t.shm;SMfg=t.fg;SMacc=t.acc;SMld=t.ld;SMrt=t.rt;SMu=t.u;SMg=t.g}
+function smLoad(d){const L=d.SMS||(d.SM&&d.SM.own?[Object.assign({x:2400},d.SM)]:[]);L.forEach(v=>{const loc=SML.find(z=>z.x==v.x)||SML[0],t=Object.assign(smNew(loc),v,{x:loc.x,ld:d.day||day});smUse(t);smInit();storeBuild();t.g=SMg;SMS.push(t)})}
+const smCap=()=>20+20*SMK.lvl,smOpen=()=>Math.min(SMK.reg,1+SMK.clerk),smPrice=k=>Math.round(SMC.find(c=>c.k==k).p*SMK.pm[k]/10)*10;
+function smInit(){SMC.forEach(c=>{SMK.sh[c.k]=SMK.sh[c.k]||0;SMK.bk[c.k]=SMK.bk[c.k]||0;SMK.pm[c.k]=SMK.pm[c.k]||1})}
+function smRate(){let p=0,n=0;SMC.forEach(c=>{p+=SMK.pm[c.k]*c.w;n+=c.w});return(24+16*SMK.lvl)*(1+brand/150)*(SMK.ad>0?1.4:1)*(1.5-p/n*.5)*SMK.rep*(wk?1.25:1)*(wx==2?.75:1)*(SMK.rm||1)*(SMK.we&&wk?1.35:1)*(1+Math.min(.3,MEM/6000))}
 function storeBuild(){if(SMg)return;const X=SMX,g=SMg=new T.Group();scene.add(g);const W=M(0xf2f2f2,.8),bx=(w,h,d,m,x,y,z)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;g.add(o);return o};
- const gd=new T.Mesh(new T.PlaneGeometry(160,110),M(0x7d848c,1));gd.rotation.x=-Math.PI/2;gd.position.set(X,.02,12);gd.receiveShadow=true;g.add(gd);
+ const gd=new T.Mesh(new T.PlaneGeometry(160,110),M(SMK.gc||0x7d848c,1));gd.rotation.x=-Math.PI/2;gd.position.set(X,.02,12);gd.receiveShadow=true;g.add(gd);
  bx(38,.2,20,M(0xe6e8ec,.6),X,.12,0);bx(38,6,.4,W,X,3,-10);bx(.4,6,20,W,X-19,3,0);bx(.4,6,20,W,X+19,3,0);bx(38,1.2,.4,W,X,.6,10);
- const c=document.createElement('canvas');c.width=512;c.height=128;drawSign(c,'resort','GRAND MARKET');const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;const sg=new T.Mesh(new T.PlaneGeometry(10,2.5),new T.MeshBasicMaterial({map:tx}));sg.position.set(X,5,-9.75);g.add(sg);
+ const c=document.createElement('canvas');c.width=512;c.height=128;drawSign(c,'resort',SMK.n||'GRAND MARKET');const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;const sg=new T.Mesh(new T.PlaneGeometry(10,2.5),new T.MeshBasicMaterial({map:tx}));sg.position.set(X,5,-9.75);g.add(sg);
  SMC.forEach((z,i)=>{const x=X-14+i*7;bx(6,2.2,1.2,M(0x9aa3ad),x,1.1,-6);SMsh[z.k]=bx(5.6,1.6,.9,M(z.col,.6),x,3,-6)});
  for(let i=0;i<4;i++){const x=X-8+i*5;bx(2.2,1,1,M(0x5a6470),x,.5,2);const f=mkGuest();f.position.set(x,0,.6);f.visible=false;SMfg.push(f)}
  for(let i=0;i<10;i++)bx(.5,.05,2.4,white,X-20+i*4.4,.06,16)}
-function smShelf(){SMC.forEach(c=>{const r=Math.max(.03,SM.sh[c.k]/smCap()),m=SMsh[c.k];if(m){m.scale.y=r;m.position.y=2.2+.8*r}});SMfg.forEach((f,i)=>f.visible=i<smOpen())}
+function smShelf(){SMC.forEach(c=>{const r=Math.max(.03,SMK.sh[c.k]/smCap()),m=SMsh[c.k];if(m){m.scale.y=r;m.position.y=2.2+.8*r}});SMfg.forEach((f,i)=>f.visible=i<smOpen())}
 function smSpawn(){if(SMcs.length>=26)return;const m=mkGuest(),w=[],pool=SMC.flatMap(c=>Array(Math.round(c.w*2)).fill(c.k)),n=2+(Math.random()*3|0);for(let i=0;i<n;i++){const k=rnd(pool);if(!w.includes(k))w.push(k)}
  m.position.set(SMX+rnd([-3,0,3]),0,10.8);SMcs.push({m,w,i:0,st:'shop',b:0,lane:-1,pt:0})}
-function smBuy(c,k){const n=Math.min(1+(Math.random()*3|0),SM.sh[k]);if(n<=0){SM.d.lost++;SM.rep=Math.max(.6,SM.rep-.004);return}SM.sh[k]-=n;c.b+=n*smPrice(k)}
-function smLane(c){let bi=0,bl=9;for(let i=0;i<smOpen();i++)if(SMq[i].length<bl){bl=SMq[i].length;bi=i}if(c.b<=0||bl>=6){if(c.b>0)SM.d.lost++;c.st='out';c.pt=2;return}c.lane=bi;SMq[bi].push(c);c.st='q'}
-function smPay(c){const r=c.b;money+=r;LG.rev+=r;totRev+=r;SM.tot+=r;SM.d.rev+=r;SM.d.cu++;SM.rep=Math.min(1.5,SM.rep+.002);bpA(SMX,'rev',r);c.st='out';c.pt=1;if(pops.length<30)pop(new T.Vector3(SMX-8+c.lane*5,2.6,2),'+¥'+fmt(r),'#9dffbf')}
-function smAuto(n){SMC.forEach(c=>{const m=Math.min(SM.bk[c.k],smCap()-SM.sh[c.k],6*n);SM.bk[c.k]-=m;SM.sh[c.k]+=m})}
-function smTick(g){if(!SM.own||!SMg)return;const dd=day-SMld;SMld=day;if(dd>0&&dd<1){SMacc+=dd*smRate();while(SMacc>=1){SMacc--;smSpawn()}}
- SMrt+=g;if(SM.clerk&&SMrt>4){SMrt=0;smAuto(SM.clerk)}SMu+=g;if(SMu>.3){SMu=0;smShelf()}
+function smBuy(c,k){const n=Math.min(1+(Math.random()*3|0),SMK.sh[k]);if(n<=0){SMK.d.lost++;SMK.rep=Math.max(.6,SMK.rep-.004);return}SMK.sh[k]-=n;c.b+=n*smPrice(k)}
+function smLane(c){let bi=0,bl=9;for(let i=0;i<smOpen();i++)if(SMq[i].length<bl){bl=SMq[i].length;bi=i}if(c.b<=0||bl>=6){if(c.b>0)SMK.d.lost++;c.st='out';c.pt=2;return}c.lane=bi;SMq[bi].push(c);c.st='q'}
+function smPay(c){const r=c.b;money+=r;LG.rev+=r;totRev+=r;SMK.tot+=r;SMK.d.rev+=r;SMK.d.cu++;SMK.rep=Math.min(1.5,SMK.rep+.002);bpA(SMX,'rev',r);c.st='out';c.pt=1;if(pops.length<30)pop(new T.Vector3(SMX-8+c.lane*5,2.6,2),'+¥'+fmt(r),'#9dffbf')}
+function smAuto(n){SMC.forEach(c=>{const m=Math.min(SMK.bk[c.k],smCap()-SMK.sh[c.k],6*n);SMK.bk[c.k]-=m;SMK.sh[c.k]+=m})}
+function smTick(g){SMS.forEach(t=>{smUse(t);smTick1(g)})}
+function smTick1(g){if(!SMK.own||!SMg)return;const dd=day-SMld;SMld=day;if(dd>0&&dd<1){SMacc+=dd*smRate();while(SMacc>=1){SMacc--;smSpawn()}}
+ SMrt+=g;if(SMK.clerk&&SMrt>4){SMrt=0;smAuto(SMK.clerk)}SMu+=g;if(SMu>.3){SMu=0;smShelf()}
  const open=smOpen();SMq.forEach((q,li)=>{if(!q.length)return;q.t=(q.t||0)+g;if(li<open&&q.t>1.4){q.t=0;smPay(q.shift())}});
  SMcs.slice().forEach(c=>{const m=c.m,X=SMX;let tx,tz;
   if(c.st=='shop'){const k=c.w[c.i];if(k==null){smLane(c);return}tx=X-14+SMC.findIndex(z=>z.k==k)*7;tz=-4.6}
@@ -517,26 +524,36 @@ function smTick(g){if(!SM.own||!SMg)return;const dd=day-SMld;SMld=day;if(dd>0&&d
   if(d>.25){const v=Math.min(d,2.4*g);m.position.x+=dx/d*v;m.position.z+=dz/d*v;m.rotation.y=Math.atan2(dx,dz)}
   else if(c.st=='shop'){smBuy(c,c.w[c.i]);c.i++}
   else if(c.st=='out'){if(c.pt==1)c.pt=2;else{scene.remove(m);SMcs.splice(SMcs.indexOf(c),1)}}})}
-function smDaily(){if(!SM.own)return;SMC.forEach(c=>{if(!c.sp)return;const a=Math.floor(SM.sh[c.k]*c.sp),b=Math.floor(SM.bk[c.k]*c.sp);SM.sh[c.k]-=a;SM.bk[c.k]-=b;SM.d.waste+=(a+b)*c.c});
- const u=6000*SM.lvl+1500*SM.reg+5000*SM.clerk;money-=u;LG.exp+=u;bpA(SMX,'exp',u);SM.ad=Math.max(0,SM.ad-1);
- if(SM.d.cu)toast('🛒 スーパー本日 売上¥'+fmt(SM.d.rev)+'・客'+SM.d.cu+'人・機会損失'+SM.d.lost+'件・廃棄¥'+fmt(SM.d.waste));SM.d={cu:0,rev:0,lost:0,waste:0}}
-function smMenu(){const e=$('sheet');e.style.display='block';const y=v=>'¥'+fmt(Math.round(v));
- if(!SM.own){e.innerHTML='<h3>🛒 スーパーマーケット出店</h3><div><small>新マップ（ホテルの東の先）。資金・収入・知名度はホテルと共通です。仕入れ・陳列・価格設定・レジ体制を自分で運営します。</small></div><div class=r><button data-sb>🏬 出店する '+y(1500000)+'</button><button data-c>閉じる</button></div>'}
- else e.innerHTML='<h3>🛒 GRAND MARKET　Lv.'+SM.lvl+'</h3><div><small>資金 '+y(money)+'　本日 売上'+y(SM.d.rev)+'・客'+SM.d.cu+'人・機会損失'+SM.d.lost+'件　累計 '+y(SM.tot)+'<br>評判 '+SM.rep.toFixed(2)+'　レジ'+smOpen()+'/'+SM.reg+'台稼働　店員'+SM.clerk+'人'+(SM.ad>0?'　📣チラシ'+SM.ad+'日':'')+'<br>生鮮・惣菜は毎日傷みます。発注→陳列→価格調整で利益を最大化！</small></div>'+SMC.map(c=>'<div style=margin-top:6px><b>'+c.n+'</b>　棚 '+SM.sh[c.k]+'/'+smCap()+'　倉庫 '+SM.bk[c.k]+'　売価 '+y(smPrice(c.k))+'（原価'+y(c.c)+'）</div><div class=r><button data-so='+c.k+'>発注+30 '+y(c.c*30)+'</button><button data-sd='+c.k+'>陳列</button><button data-sp='+c.k+':-1>価格−5%</button><button data-sp='+c.k+':1>価格＋5%</button></div>').join('')
- +'<div class=r style=margin-top:8px><button data-sa>📦 全品陳列</button><button data-sl>🏗 売場拡張 Lv.'+SM.lvl+(SM.lvl>=4?'（最大）':' '+y(800000*SM.lvl))+'</button><button data-sr>🧾 レジ増設 '+SM.reg+'/4'+(SM.reg>=4?'':' '+y(250000))+'</button><button data-sc>🧑‍🍳 店員採用 '+SM.clerk+'/4'+(SM.clerk>=4?'':' '+y(150000)+'（自動陳列＋レジ稼働）')+'</button><button data-sd2>📣 チラシ '+y(80000)+'（3日間集客＋40%）</button><button data-sg>📍 店へ移動</button><button data-c>閉じる</button></div>';
- e.onclick=q=>{const b=q.target.closest('button');if(!b)return;const d=b.dataset,pay=c=>{if(money<c){toast('資金不足');return 0}money-=c;LG.exp+=c;return 1};
+function smDaily(){SMS.forEach(t=>{smUse(t);smDaily1()})}
+function smDaily1(){if(!SMK.own)return;SMC.forEach(c=>{if(!c.sp)return;const a=Math.floor(SMK.sh[c.k]*c.sp),b=Math.floor(SMK.bk[c.k]*c.sp);SMK.sh[c.k]-=a;SMK.bk[c.k]-=b;SMK.d.waste+=(a+b)*c.c});
+ if(SMK.mgr){SMC.forEach(c=>{while(SMK.sh[c.k]+SMK.bk[c.k]<smCap()*1.2&&money>400000){const k=Math.round(c.c*30*smDisc());money-=k;LG.exp+=k;bpA(SMX,'exp',k);SMK.bk[c.k]+=30}});smAuto(99)}
+ const u=(6000*SMK.lvl+1500*SMK.reg+5000*SMK.clerk)*(SMK.rent||1)+(SMK.mgr?7000:0);money-=u;LG.exp+=u;bpA(SMX,'exp',u);SMK.ad=Math.max(0,SMK.ad-1);
+ if(SMK.d.cu)toast('🛒 '+SMK.n+' 本日 売上¥'+fmt(SMK.d.rev)+'・客'+SMK.d.cu+'人・機会損失'+SMK.d.lost+'件・廃棄¥'+fmt(SMK.d.waste));SMK.d={cu:0,rev:0,lost:0,waste:0}}
+function smHQ(){const e=$('sheet');e.style.display='block';const y=v=>'¥'+fmt(Math.round(v)),tot=SMS.reduce((a,t)=>a+t.tot,0);
+ e.innerHTML='<h3>🛒 GRAND MARKET チェーン本部</h3><div><small>'+SMS.length+'/'+smMax()+'店　累計売上 '+y(tot)+'　共同仕入れ割引 '+Math.round((1-smDisc())*100)+'%<br>店舗が増えるほど仕入れが安くなります。出店上限はランクで増加。店長を置くと発注と陳列が自動化されます。</small></div>'+SML.map((L,k)=>{const t=SMS.find(z=>z.x==L.x);return '<div style=margin-top:8px><b>'+L.n+'</b>　<small>'+L.t+'</small></div><div class=r>'+(t?'<button data-sv='+k+'>🛒 運営　Lv.'+t.lvl+'・累計'+y(t.tot)+(t.mgr?'・店長':'')+'</button><button data-sg='+k+'>📍 移動</button>':'<button data-sb='+k+'>🏬 出店 '+y(smCost())+'</button>')+'</div>'}).join('')+'<div class=r style=margin-top:8px><button data-sA>📦 全店 一括陳列</button><button data-c>閉じる</button></div>';
+ e.onclick=q=>{const b=q.target.closest('button');if(!b)return;const d=b.dataset;if(d.c!==undefined){e.style.display='none';return}
+  if(d.sv!==undefined){smMenu(SMS.findIndex(t=>t.x==SML[d.sv].x));return}
+  if(d.sg!==undefined){G={x:SML[d.sg].x,y:6,z:0,r:44};camMode=0;e.style.display='none';return}
+  if(d.sb!==undefined){const L=SML[d.sb],c=smCost();if(SMS.length>=smMax())return toast('🌏 出店上限です（ランクアップで増加）');if(money<c)return toast('資金不足');money-=c;LG.exp+=c;const t=smNew(L);smUse(t);smInit();SMC.forEach(z=>SMK.bk[z.k]=30);storeBuild();t.g=SMg;SMS.push(t);toast('🏬 '+L.n+' 開業！')}
+  else if(d.sA!==undefined)SMS.forEach(t=>{smUse(t);smAuto(99);smShelf()});
+  smHQ();hud()}}
+function smMenu(i){const t=SMS[i];if(!t)return smHQ();smUse(t);const e=$('sheet');e.style.display='block';const y=v=>'¥'+fmt(Math.round(v)),oc=c=>Math.round(c.c*30*smDisc());
+ e.innerHTML='<h3>🛒 '+SMK.n+'　Lv.'+SMK.lvl+'</h3><div><small>資金 '+y(money)+'　本日 売上'+y(SMK.d.rev)+'・客'+SMK.d.cu+'人・機会損失'+SMK.d.lost+'件　累計 '+y(SMK.tot)+'<br>評判 '+SMK.rep.toFixed(2)+'　レジ'+smOpen()+'/'+SMK.reg+'台稼働　店員'+SMK.clerk+'人'+(SMK.mgr?'　👔店長あり':'')+(SMK.ad>0?'　📣チラシ'+SMK.ad+'日':'')+'<br>仕入れ割引 '+Math.round((1-smDisc())*100)+'%　生鮮・惣菜は毎日傷みます</small></div>'+SMC.map(c=>'<div style=margin-top:6px><b>'+c.n+'</b>　棚 '+SMK.sh[c.k]+'/'+smCap()+'　倉庫 '+SMK.bk[c.k]+'　売価 '+y(smPrice(c.k))+'（原価'+y(c.c)+'）</div><div class=r><button data-so='+c.k+'>発注+30 '+y(oc(c))+'</button><button data-sd='+c.k+'>陳列</button><button data-sp='+c.k+':-1>価格−5%</button><button data-sp='+c.k+':1>価格＋5%</button></div>').join('')
+ +'<div class=r style=margin-top:8px><button data-sa>📦 全品陳列</button><button data-sl>🏗 売場拡張 Lv.'+SMK.lvl+(SMK.lvl>=4?'（最大）':' '+y(800000*SMK.lvl))+'</button><button data-sr>🧾 レジ増設 '+SMK.reg+'/4'+(SMK.reg>=4?'':' '+y(250000))+'</button><button data-sc>🧑‍🍳 店員採用 '+SMK.clerk+'/4'+(SMK.clerk>=4?'':' '+y(150000)+'（自動陳列＋レジ稼働）')+'</button><button data-sm2>👔 店長 '+(SMK.mgr?'配置済み':y(200000)+'（毎日自動発注・陳列／日給¥7,000）')+'</button><button data-sd2>📣 チラシ '+y(80000)+'（3日間集客＋40%）</button><button data-sg>📍 店へ移動</button><button data-sh>← 本部</button><button data-c>閉じる</button></div>';
+ e.onclick=q=>{const b=q.target.closest('button');if(!b)return;const d=b.dataset;smUse(t);const pay=c=>{if(money<c){toast('資金不足');return 0}money-=c;LG.exp+=c;return 1};
   if(d.c!==undefined){e.style.display='none';return}
+  if(d.sh!==undefined){smHQ();return}
   if(d.sg!==undefined){G={x:SMX,y:6,z:0,r:44};camMode=0;e.style.display='none';return}
-  if(d.sb!==undefined){if(money<1500000)return toast('資金不足');money-=1500000;LG.exp+=1500000;SM.own=1;smInit();SMC.forEach(c=>SM.bk[c.k]=30);SMld=day;storeBuild();toast('🛒 スーパーマーケット開業！')}
-  else if(d.so!==undefined){const c=SMC.find(z=>z.k==d.so);if(pay(c.c*30))SM.bk[c.k]+=30}
-  else if(d.sd!==undefined){const k=d.sd,n=Math.min(SM.bk[k],smCap()-SM.sh[k]);SM.bk[k]-=n;SM.sh[k]+=n}
+  if(d.so!==undefined){const c=SMC.find(z=>z.k==d.so);if(pay(oc(c)))SMK.bk[c.k]+=30}
+  else if(d.sd!==undefined){const k=d.sd,n=Math.min(SMK.bk[k],smCap()-SMK.sh[k]);SMK.bk[k]-=n;SMK.sh[k]+=n}
   else if(d.sa!==undefined)smAuto(99);
-  else if(d.sp!==undefined){const a=d.sp.split(':');SM.pm[a[0]]=Math.max(.6,Math.min(1.6,+(SM.pm[a[0]]+a[1]*.05).toFixed(2)))}
-  else if(d.sl!==undefined){if(SM.lvl<4&&pay(800000*SM.lvl))SM.lvl++}
-  else if(d.sr!==undefined){if(SM.reg<4&&pay(250000))SM.reg++}
-  else if(d.sc!==undefined){if(SM.clerk<4&&pay(150000))SM.clerk++}
-  else if(d.sd2!==undefined){if(pay(80000))SM.ad=3}
-  smShelf();smMenu();hud()}}
+  else if(d.sp!==undefined){const a=d.sp.split(':');SMK.pm[a[0]]=Math.max(.6,Math.min(1.6,+(SMK.pm[a[0]]+a[1]*.05).toFixed(2)))}
+  else if(d.sl!==undefined){if(SMK.lvl<4&&pay(800000*SMK.lvl))SMK.lvl++}
+  else if(d.sr!==undefined){if(SMK.reg<4&&pay(250000))SMK.reg++}
+  else if(d.sc!==undefined){if(SMK.clerk<4&&pay(150000))SMK.clerk++}
+  else if(d.sm2!==undefined){if(!SMK.mgr&&pay(200000))SMK.mgr=1}
+  else if(d.sd2!==undefined){if(pay(80000))SMK.ad=3}
+  smShelf();smMenu(i);hud()}}
 function mainMenu(){const e=$('sheet');e.style.display='block';const GR=[['💰 経営',['bB','bS2','bY','bL','bA']],['🏨 運営',['bX','bR','bQ']],['⚙ 設定',['bM','bG']]];
  e.innerHTML='<h3>☰ メニュー</h3>'+GR.map(g=>'<div style="margin:6px 0 2px;font-size:12px;opacity:.7">'+g[0]+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+g[1].map(i=>'<button data-m="'+i+'">'+$(i).textContent+'</button>').join('')+'</div>').join('')+'<div class="r" style="margin-top:8px"><button data-c>閉じる</button></div>';
  e.onclick=q=>{const b=q.target.closest('button');if(!b)return;if(b.dataset.c!==undefined){e.style.display='none';return}if(b.dataset.m){e.style.display='none';$(b.dataset.m).click()}}}
@@ -609,7 +626,7 @@ function landMenu(){const e=$('sheet');e.style.display='block';
   if(!p.an)return '<button data-la="'+i+'">'+nm+' 別館を建設 ¥400,000</button><button data-ls="'+i+'">'+nm+' 土地を売却 ¥'+fmt(landPrice(p)*.8)+'</button>';
   return '<button data-la="'+i+'">'+nm+' 別館 '+p.an.nF+'階 増築 ¥'+fmt(60000*(p.an.nF+1))+'</button>'}).join('')+'</div><div class="r" style="margin-top:8px"><button data-c>閉じる</button></div>';
  e.onclick=q=>{const b=q.target.closest('button');if(!b)return;const d=b.dataset;if(d.c!==undefined){e.style.display='none';return}
-  if(d.bm!==undefined){branchMgr();return}if(d.sm!==undefined){smMenu();return}if(d.go!==undefined){const p=PL[d.go];G={x:p?p.x:0,y:6,z:0,r:44};camMode=0;e.style.display='none';return}
+  if(d.bm!==undefined){branchMgr();return}if(d.sm!==undefined){smHQ();return}if(d.go!==undefined){const p=PL[d.go];G={x:p?p.x:0,y:6,z:0,r:44};camMode=0;e.style.display='none';return}
   if(d.lb!==undefined){const p=PL[d.lb],c=landPrice(p);if(p.mp&&chainN()>=chainMax())return toast('🌏 出店上限です（ランクアップで増加）');if(money<c)return toast('資金不足');money-=c;p.own=1;markLand(p);toast('🏞 土地を取得')}
   if(d.ls!==undefined){const p=PL[d.ls];money+=Math.round(landPrice(p)*.8);p.own=0;markLand(p);toast('💴 土地を売却')}
   if(d.la!==undefined){const p=PL[d.la],c=p.an?60000*(p.an.nF+1):400000;if(p.an&&p.an.nF>=(p.mp=='resort'?4:p.mp=='biz'?10:p.mp=='love'?5:6))return toast('上限です');if(money<c)return toast('資金不足');if(CQ.some(q=>q.key==p.x))return toast('🏗 工事中です');money-=c;startBuild((p.mp?p.n:'別館')+' '+(p.an?p.an.nF+1:1)+'階',p.x,4+(p.an?p.an.nF:0),p)}
@@ -680,9 +697,9 @@ function menu(){const e=$('sheet');e.style.display='block';
   if(d.tr!==undefined){const c=40000*(trn+1);if(trn>=3)return toast('最大です');if(money<c)return toast('資金不足');money-=c;LG.exp+=c;trn++;toast('🎓 研修完了 Lv.'+trn)}
   if(d.h!==undefined){const k=d.h;if(S[k]>=scap(k))return toast('上限です');if(money<10000)return toast('資金不足');money-=10000;S[k]++;staffMesh(k)}
   menu();hud()}}
-function save(){if(noSave)return;try{localStorage.setItem('ght',JSON.stringify({money,rating,day,lastDay,mult,nF,F,S,debt,ins,LG,LP,ev,ads,brand,ach,RV,totRev,ver:2,tq,BPL,BPN,AUTOP,WKND,MEM,REFN,SM,SP:sMesh.map(m=>[m.userData.k,m.userData.p]),PK,CT,BS,ST,cq:CQ.map(q=>[q.key,q.left,q.d0,q.label]),dm,trn,hist,overdue,FX,land:PL.map(p=>[p.own,p.an?p.an.nF:-1,p.mgr||0,p.th||0,p.sn||'']),landIdx,BRoff,s:slots.filter(s=>s.type||s.fac).map(s=>[s.ox||0,s.f,s.i,s.type,s.lvl,s.cond,s.fac,s.cap,s.cm,s.pm,s.dc||0])}))}catch(e){}}
+function save(){if(noSave)return;try{localStorage.setItem('ght',JSON.stringify({money,rating,day,lastDay,mult,nF,F,S,debt,ins,LG,LP,ev,ads,brand,ach,RV,totRev,ver:2,tq,BPL,BPN,AUTOP,WKND,MEM,REFN,SMS:SMS.map(smSave),SP:sMesh.map(m=>[m.userData.k,m.userData.p]),PK,CT,BS,ST,cq:CQ.map(q=>[q.key,q.left,q.d0,q.label]),dm,trn,hist,overdue,FX,land:PL.map(p=>[p.own,p.an?p.an.nF:-1,p.mgr||0,p.th||0,p.sn||'']),landIdx,BRoff,s:slots.filter(s=>s.type||s.fac).map(s=>[s.ox||0,s.f,s.i,s.type,s.lvl,s.cond,s.fac,s.cap,s.cm,s.pm,s.dc||0])}))}catch(e){}}
 function load(){try{const d=JSON.parse(localStorage.getItem('ght'));if(!d)return false;
- ({money,rating,day,lastDay,mult}=d);debt=d.debt||0;ins=d.ins||0;LG=d.LG||LG;LP=d.LP||null;ev=d.ev||ev;ads=d.ads||{};brand=d.brand||0;ach=d.ach||{};RV=d.RV||1;totRev=d.totRev||0;lvl=lvlOf(totRev);PK=d.PK||PK;CT=d.CT||CT;tq=d.tq||{};BPL=d.BPL||{};BPN=d.BPN||[];AUTOP=d.AUTOP||0;WKND=d.WKND||0;MEM=d.MEM||0;REFN=d.REFN||0;if(d.SM&&d.SM.own){SM=Object.assign(SM,d.SM);smInit();storeBuild();SMld=d.day||day}Object.assign(F,d.F);Object.assign(S,d.S);while(nF<d.nF)addFloor();
+ ({money,rating,day,lastDay,mult}=d);debt=d.debt||0;ins=d.ins||0;LG=d.LG||LG;LP=d.LP||null;ev=d.ev||ev;ads=d.ads||{};brand=d.brand||0;ach=d.ach||{};RV=d.RV||1;totRev=d.totRev||0;lvl=lvlOf(totRev);PK=d.PK||PK;CT=d.CT||CT;tq=d.tq||{};BPL=d.BPL||{};BPN=d.BPN||[];AUTOP=d.AUTOP||0;WKND=d.WKND||0;MEM=d.MEM||0;REFN=d.REFN||0;smLoad(d);Object.assign(F,d.F);Object.assign(S,d.S);while(nF<d.nF)addFloor();
  if(d.land)d.land.forEach((v,i)=>{const p=PL[i];if(p&&v[0]){p.own=1;p.mgr=v[2]||0;p.th=v[3]||0;p.sn=v[4]||'';markLand(p);if(v[1]>=0){buildAn(p);while(p.an.nF<v[1])addAn(p)}}});else if(d.anx>=0){PL[0].own=1;markLand(PL[0]);buildAn(PL[0]);while(PL[0].an.nF<d.anx)addAn(PL[0])}BS=d.BS||{};Object.keys(BS).forEach(bizMesh);ST=d.ST||ST;if(d.cq)d.cq.forEach(restoreBuild);landIdx=d.landIdx||1;BRoff=d.BRoff||0;dm=d.dm||dm;trn=d.trn||0;hist=d.hist||[];overdue=d.overdue||0;FX=d.FX||1;
  d.s.forEach((v,i)=>{let s,t,l,c,f;if(v.length>=7){s=slots.find(x=>(x.ox||0)==Math.round(v[0]*(d.ver==2?1:26/17))&&x.f==v[1]&&x.i==v[2]);t=v[3];l=v[4];c=v[5];f=v[6]}else{s=slots[i];t=v[0];l=v[1];c=v[2]}if(s&&(t||f)){if(v[7])s.cap=v[7];if(v[8]!=null)s.cm=v[8];if(v[9])s.pm=v[9];if(v[10])s.dc=1;s.type=t||0;s.lvl=l||0;s.cond=c;if(f){s.fac=f;furnishFac(s)}else furnish(s)}});Object.keys(IN).forEach(k=>{if(F[k]&&!slots.some(s=>s.fac==k)){F[k]=0;money+=FC[k]}});
  Object.keys(F).forEach(k=>F[k]&&!IN[k]&&buildFac(k));['clean','conc','bell','valet'].forEach(k=>{for(let i=0;i<(S[k]||0);i++)staffMesh(k)});if(d.SP){const used=new Set();d.SP.forEach(v=>{const m=sMesh.find(x=>x.userData.k==v[0]&&!used.has(x));if(m){used.add(m);m.userData.p=v[1]}})}return true}catch(e){return false}}
