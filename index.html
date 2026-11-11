@@ -499,17 +499,59 @@ const smCap=()=>20+20*SMK.lvl,smOpen=()=>Math.min(SMK.reg,1+SMK.clerk),smPrice=k
 function smInit(){SMC.forEach(c=>{SMK.sh[c.k]=SMK.sh[c.k]||0;SMK.bk[c.k]=SMK.bk[c.k]||0;SMK.pm[c.k]=SMK.pm[c.k]||1})}
 const isWk=()=>(day|0)%7>4;
 function smRate(){let p=0,n=0;SMC.forEach(c=>{p+=SMK.pm[c.k]*c.w;n+=c.w});return(24+16*SMK.lvl)*(1+brand/150)*(SMK.ad>0?1.4:1)*(1.5-p/n*.5)*SMK.rep*(isWk()?1.25:1)*(wx==2?.75:1)*(SMK.rm||1)*(SMK.we&&isWk()?1.35:1)*(1+Math.min(.3,MEM/6000))}
-function storeBuild(){if(SMg)return;const X=SMX,g=SMg=new T.Group();scene.add(g);const W=M(0xf2f2f2,.8),bx=(w,h,d,m,x,y,z)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;g.add(o);return o};
+const PG=new T.BoxGeometry(1,1,1);
+function storeBuild(){if(SMg)return;const X=SMX,g=SMg=new T.Group();scene.add(g);
+ const ci=Math.max(0,SML.findIndex(z=>z.x==X)),BR=[0xe53935,0x43a047,0x1e88e5,0xfb8c00,0x8e24aa,0x00897b][ci%6],rs=i=>((Math.sin(X*.013+i*12.9898)*43758.5453)%1+1)%1;
+ const bg=(w,h,d)=>{const k=w+','+h+','+d;return GC[k]||(GC[k]=new T.BoxGeometry(w,h,d))};
+ const bx=(w,h,d,m,x,y,z,p,sh)=>{const o=new T.Mesh(bg(w,h,d),m);o.position.set(x,y,z);if(sh!==0)o.castShadow=o.receiveShadow=true;(p||g).add(o);return o};
+ const shade=(c,f)=>(Math.min(255,((c>>16)&255)*f|0)<<16)|(Math.min(255,((c>>8)&255)*f|0)<<8)|Math.min(255,(c&255)*f|0);
+ const lab=(txt,w,h,bgc,fg,x,y,z)=>{const c=document.createElement('canvas');c.width=256;c.height=Math.max(32,Math.round(256*h/w));const q=c.getContext('2d');q.fillStyle=bgc;q.fillRect(0,0,c.width,c.height);q.fillStyle=fg;q.font='bold '+Math.round(c.height*.58)+'px sans-serif';q.textAlign='center';q.textBaseline='middle';q.fillText(txt,c.width/2,c.height/2+2);
+  const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;const o=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:t}));o.position.set(x,y,z);g.add(o);return o};
+ const W=M(0xf6f1e7,.9),DK=M(0x555b66,.7),GL=M(0x9fd0f0,.1,.1,{transparent:true,opacity:.3,side:T.DoubleSide,depthWrite:false});
+ // 地面・駐車場
  const gd=new T.Mesh(new T.PlaneGeometry(160,110),M(SMK.gc||0x7d848c,1));gd.rotation.x=-Math.PI/2;gd.position.set(X,.02,12);gd.receiveShadow=true;g.add(gd);
- bx(38,.2,20,M(0xe6e8ec,.6),X,.12,0);bx(38,6,.4,W,X,3,-10);bx(.4,6,20,W,X-19,3,0);bx(.4,6,20,W,X+19,3,0);bx(38,1.2,.4,W,X,.6,10);
- const c=document.createElement('canvas');c.width=512;c.height=128;drawSign(c,'resort',SMK.n||'GRAND MARKET');const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;const sg=new T.Mesh(new T.PlaneGeometry(10,2.5),new T.MeshBasicMaterial({map:tx}));sg.position.set(X,5,-9.75);g.add(sg);
- SMC.forEach((z,i)=>{const x=X-14+i*7;bx(6,2.2,1.2,M(0x9aa3ad),x,1.1,-6);SMsh[z.k]=bx(5.6,1.6,.9,M(z.col,.6),x,3,-6)});
- for(let i=0;i<4;i++){const x=X-8+i*5;bx(2.2,1,1,M(0x5a6470),x,.5,2);const f=mkGuest();f.position.set(x,0,.6);f.visible=false;SMfg.push(f)}
- for(let i=0;i<10;i++)bx(.5,.05,2.4,white,X-20+i*4.4,.06,16)}
-function smShelf(){SMC.forEach(c=>{const r=Math.max(.03,SMK.sh[c.k]/smCap()),m=SMsh[c.k];if(m){m.scale.y=r;m.position.y=2.2+.8*r}});SMfg.forEach((f,i)=>f.visible=i<smOpen())}
+ const pk=new T.Mesh(new T.PlaneGeometry(52,24),M(0x30343b,.95));pk.rotation.x=-Math.PI/2;pk.position.set(X,.04,22.5);pk.receiveShadow=true;g.add(pk);
+ for(let i=0;i<13;i++)bx(.14,.02,4.6,white,X-24+i*4,.06,20,g,0);
+ const wheelG=new T.CylinderGeometry(.34,.34,.24,10),cols=[0xc62828,0x1565c0,0xeeeeee,0x2e7d32,0x424242,0xf9a825];
+ for(let i=0;i<6;i++){const sl=Math.floor(rs(i)*12),cx=X-22+sl*4,cc=cols[Math.floor(rs(i+9)*6)],car=new T.Group();car.position.set(cx+2,0,20);g.add(car);
+  bx(1.9,.62,4.1,M(cc,.4,.3),0,.55,0,car);bx(1.6,.55,2.1,M(0x1c2430,.2,.4),0,1.1,-.1,car);[[-.95,1.3],[.95,1.3],[-.95,-1.3],[.95,-1.3]].forEach(w=>{const o=new T.Mesh(wheelG,M(0x111111,.9));o.rotation.z=Math.PI/2;o.position.set(w[0],.34,w[1]);car.add(o)})}
+ // 床・壁
+ const fc=document.createElement('canvas');fc.width=fc.height=64;const fx=fc.getContext('2d');fx.fillStyle='#eceff2';fx.fillRect(0,0,64,64);fx.fillStyle='#d3d8de';fx.fillRect(0,0,32,32);fx.fillRect(32,32,32,32);
+ const ft=new T.CanvasTexture(fc);ft.wrapS=ft.wrapT=T.RepeatWrapping;ft.repeat.set(19,10);ft.encoding=T.sRGBEncoding;
+ const fl=new T.Mesh(new T.PlaneGeometry(38,20),new T.MeshStandardMaterial({map:ft,roughness:.35}));fl.rotation.x=-Math.PI/2;fl.position.set(X,.14,0);fl.receiveShadow=true;g.add(fl);
+ bx(38.6,.2,20.6,DK,X,.05,0);
+ bx(38,6,.4,W,X,3,-10);bx(38,.8,.45,M(BR,.6),X,5.4,-10);bx(38,.4,.45,DK,X,.35,-10);
+ [-1,1].forEach(sd=>{bx(.4,2.4,20,W,X+sd*19,1.2,0);bx(.45,.5,20,M(BR,.6),X+sd*19,2.55,0);const gp=new T.Mesh(new T.PlaneGeometry(20,3),GL);gp.rotation.y=Math.PI/2;gp.position.set(X+sd*19,4.3,0);g.add(gp);for(let i=0;i<5;i++)bx(.5,3.2,.3,DK,X+sd*19,4.3,-10+i*5)});
+ bx(16,1.2,.4,W,X-11,.6,10);bx(16,1.2,.4,W,X+11,.6,10);bx(16,.4,.45,M(BR,.6),X-11,1.4,10);bx(16,.4,.45,M(BR,.6),X+11,1.4,10);
+ // 入口(自動ドア・庇・マット)
+ [-3.1,3.1].forEach(sd=>bx(.3,3.4,.4,DK,X+sd,1.7,10));bx(6.7,.5,.5,DK,X,3.45,10);[-1.5,1.5].forEach(sd=>{const dp=new T.Mesh(new T.PlaneGeometry(2.8,2.9),GL);dp.position.set(X+sd*1.0,1.6,10);g.add(dp)});
+ bx(6,.04,2,M(0x3a3f48,1),X,.17,11,g,0);bx(8.4,.25,3.6,M(BR,.6),X,3.9,11.8);[-4,4].forEach(sd=>bx(.2,3.8,.2,DK,X+sd,1.9,13.4));
+ lab('いらっしゃいませ',6,.7,'#ffffff','#'+BR.toString(16).padStart(6,'0'),X,3.0,10.3);
+ // 屋上看板
+ bx(10.8,3,.3,M(0x222831,.6),X,7.7,-9.9);const c=document.createElement('canvas');c.width=512;c.height=128;drawSign(c,'resort',SMK.n||'GRAND MARKET');const tx=new T.CanvasTexture(c);tx.encoding=T.sRGBEncoding;const sg=new T.Mesh(new T.PlaneGeometry(10.2,2.55),new T.MeshBasicMaterial({map:tx}));sg.position.set(X,7.7,-9.72);g.add(sg);
+ // 陳列棚(ゴンドラ)と商品
+ SMsh.lamps=[];
+ SMC.forEach((z,i)=>{const x=X-14+i*7,it=SMsh[z.k]=[];bx(6,.2,1.4,DK,x,.24,-6);bx(6,2.7,.1,M(0xb8c0c8,.6),x,1.55,-6.65);[-1,1].forEach(sd=>bx(.12,2.7,1.4,M(0x8b95a1,.6),x+sd*3,1.55,-6));
+  [.62,1.22,1.82,2.42].forEach((yy,lv)=>{bx(5.9,.06,1.2,M(0xc9d0d8,.5),x,yy,-6.05);bx(5.9,.1,.04,M(0xffffff,.8),x,yy-.04,-5.43);
+   for(let j=0;j<10;j++){const h=.26+rs(i*40+lv*10+j)*.14,m=new T.Mesh(PG,M(shade(z.col,.8+rs(i*7+j)*.45),.65));m.scale.set(.46,h,.34);m.position.set(x-2.7+j*.6,yy+.03+h/2,-5.85);g.add(m);it.push(m)}});
+  lab(z.n,5,.8,'#ffffff','#'+z.col.toString(16).padStart(6,'0'),x,3.35,-6.45);[-2.4,2.4].forEach(sd=>bx(.05,.5,.05,DK,x+sd,3.05,-6.45,g,0));
+  if(i==0||i==4){const gl=new T.Mesh(new T.PlaneGeometry(5.9,2.2),GL);gl.position.set(x,1.5,-5.3);g.add(gl);bx(5.9,.08,.2,M(0x6fe3ff,.3,0,{emissive:0x6fe3ff,emissiveIntensity:1.2}),x,2.62,-5.45,g,0)}});
+ // レジ・カート・照明・植栽
+ for(let i=0;i<4;i++){const x=X-8+i*5;bx(2.2,.95,1,M(0x4a5560,.7),x,.5,2);bx(2.3,.06,1.1,M(0xd9dee4,.4),x,.99,2);bx(1.4,.05,.7,M(0x111418,.9),x+.35,1.04,2.05,g,0);bx(.5,.36,.4,M(0x2b2f36,.5),x-.7,1.22,1.65);bx(.4,.22,.04,M(0x0b1a10,.3,0,{emissive:0x39ff88,emissiveIntensity:.8}),x-.7,1.3,1.86,g,0);
+  bx(.08,2.4,.08,DK,x,1.2,.9,g,0);const lm=M(0x222222,.4,0,{emissive:0xff3b3b,emissiveIntensity:1.6});bx(.5,.3,.2,lm,x,2.5,.9,g,0);SMsh.lamps.push(lm);lab(String(i+1),.5,.5,'#222831','#ffffff',x,2.1,.9);
+  const f=mkGuest();f.position.set(x,0,.5);f.visible=false;SMfg.push(f)}
+ for(let i=0;i<5;i++){const cx=X-9.5+i*.95,ct=new T.Group();ct.position.set(cx,0,8.6);g.add(ct);bx(.7,.06,1,DK,0,.3,0,ct,0);bx(.7,.4,1,M(0x9aa5b1,.5),0,.62,0,ct,0);bx(.7,.05,.05,DK,0,1.0,.5,ct,0);[[-.3,-.4],[.3,-.4],[-.3,.4],[.3,.4]].forEach(w=>bx(.1,.1,.1,M(0x111111),w[0],.1,w[1],ct,0))}
+ for(let i=0;i<3;i++)bx(.5,.2+.15*i,.4,M(0xe53935,.6),X+6.2,.2+i*.2,8.8,g,0);
+ [[-17,14],[-7,14],[7,14],[17,14],[-20,-8],[20,-8]].forEach(p=>{bx(.14,6,.14,DK,X+p[0],3,p[1],g,0);bx(1,.15,.5,lamp,X+p[0],6.1,p[1],g,0)});
+ for(let i=0;i<4;i++){tree(X-30+i*7,-16,1+rs(i)*.4);tree(X+10+i*7,-16,1+rs(i+5)*.4)}
+ for(let i=0;i<3;i++){bx(2.2,.5,.9,M(0x8d6e63,.9),X-6+i*6,.3,12.9);ball(.55,M(0x3f7a3a,.9),X-6+i*6,.85,12.9,g)}
+ bx(.2,4.2,.2,DK,X-26,2.1,12);lab(SMK.n||'MARKET',4.2,1.1,'#ffffff','#'+BR.toString(16).padStart(6,'0'),X-26,4.6,12);
+}
+function smShelf(){SMC.forEach(c=>{const it=SMsh[c.k];if(!it)return;const n=SMK.sh[c.k]>0?Math.max(1,Math.round(it.length*Math.min(1,SMK.sh[c.k]/smCap()))):0;it.forEach((m,i)=>{m.visible=i<n})});
+ SMfg.forEach((f,i)=>{const on=i<smOpen();f.visible=on;const lp=SMsh.lamps&&SMsh.lamps[i];if(lp)lp.emissive.setHex(on?0x39ff88:0xff3b3b)})}
 function smSpawn(){if(SMcs.length>=26)return;const m=mkGuest(),w=[],pool=SMC.flatMap(c=>Array(Math.round(c.w*2)).fill(c.k)),n=2+(Math.random()*3|0);for(let i=0;i<n;i++){const k=rnd(pool);if(!w.includes(k))w.push(k)}
- m.position.set(SMX+rnd([-3,0,3]),0,10.8);SMcs.push({m,w,i:0,st:'shop',b:0,lane:-1,pt:0})}
-function smBuy(c,k){const n=Math.min(1+(Math.random()*3|0),SMK.sh[k]);if(n<=0){SMK.d.lost++;SMK.rep=Math.max(.6,SMK.rep-.004);return}SMK.sh[k]-=n;c.b+=n*smPrice(k)}
+ m.position.set(SMX+rnd([-3,0,3]),0,10.8);let bk=null;if(m.add){bk=new T.Mesh(new T.BoxGeometry(.3,.2,.22),M(0xe53935,.6));bk.position.set(.3,.5,.12);bk.visible=false;m.add(bk)}SMcs.push({m,w,i:0,st:'shop',b:0,lane:-1,pt:0,bk})}
+function smBuy(c,k){const n=Math.min(1+(Math.random()*3|0),SMK.sh[k]);if(n<=0){SMK.d.lost++;SMK.rep=Math.max(.6,SMK.rep-.004);return}SMK.sh[k]-=n;c.b+=n*smPrice(k);if(c.bk)c.bk.visible=true}
 function smLane(c){let bi=0,bl=9;for(let i=0;i<smOpen();i++)if(SMq[i].length<bl){bl=SMq[i].length;bi=i}if(c.b<=0||bl>=6){if(c.b>0)SMK.d.lost++;c.st='out';c.pt=2;return}c.lane=bi;SMq[bi].push(c);c.st='q'}
 function smPay(c){const r=c.b;money+=r;LG.rev+=r;totRev+=r;SMK.tot+=r;SMK.d.rev+=r;SMK.d.cu++;SMK.rep=Math.min(1.5,SMK.rep+.002);bpA(SMX,'rev',r);c.st='out';c.pt=1;if(pops.length<30)pop(new T.Vector3(SMX-8+c.lane*5,2.6,2),'+¥'+fmt(r),'#9dffbf')}
 function smAuto(n){SMC.forEach(c=>{const m=Math.min(SMK.bk[c.k],smCap()-SMK.sh[c.k],6*n);SMK.bk[c.k]-=m;SMK.sh[c.k]+=m})}
